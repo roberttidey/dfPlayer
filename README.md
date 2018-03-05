@@ -1,6 +1,7 @@
 # dfPlayer application for ESP8266
 
 See schematic for hook up.
+Instructable at https://www.instructables.com/id/ESP8266-DfPlayer-Audio-Player/
 
 ## Features
 - 4 local buttons for standalone use
