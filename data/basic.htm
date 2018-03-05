@@ -1,0 +1,42 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta name = "viewport" content = "width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0">
+<title>ESP8266 dfPlayer</title>
+<style>
+"body { background-color: #808080; font-family: Arial, Helvetica, Sans-Serif; Color: #000000; }"
+</style>
+</head>
+<body>
+<h1>dfPlayer</h1>
+<FORM action="/dfPlayer" method="post">
+<P>
+Command<br>
+<select name="cmd">
+  <option value="play" selected>play</option>
+  <option value="stop">stop</option>
+  <option value="pause">pause</option>
+  <option value="start">start</option>
+  <option value="volume">volume</option>
+  <option value="volumeup">volumeup</option>
+  <option value="volumedown">volumedown</option>
+  <option value="speaker">speaker</option>
+  <option value="next">next</option>
+  <option value="previous">previous</option>
+  <option value="random">random</option>
+  <option value="loopFolder">loopFolder</option>
+  <option value="random">random</option>
+  <option value="mode">mode</option>
+  <option value="eq">eq</option>
+  <option value="reset">reset</option>
+  <option value="init">init</option>
+  <option value="raw">raw</option>
+</select><BR>
+<INPUT type="text" name="p1" value="04">p1 - Folder<BR>
+<INPUT type="text" name="p2" value="01">p2 - Track<BR>
+<INPUT type="text" name="p3" value="01">p3 - Extra<BR>
+<INPUT type="submit" value="Send">
+</P>
+</FORM>
+</body>
+</html>

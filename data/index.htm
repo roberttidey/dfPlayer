@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html manifest="offline.appcache">
+	<head>
+		<!--Import Google Icon Font-->
+		<link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+		<!--Import materialize.css-->
+		<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css" media="screen,projection" />
+
+		<!--Let browser know website is optimized for mobile-->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+		<meta charset="utf-8"/>
+		<title>Mini dfPlayer</title>
+	</head>
+
+	<body>
+		<nav class="blue light-blueXXX lighten-1XXX" role="navigation" id="mc-nav">
+			<div class="nav-wrapper container">
+				<a id="logo-container" href="#" class="brand-logo">Mini dfPlayer</a>
+			</div>
+		</nav>
+		
+		<div class="container mc_pane" id="pane2">
+			<div class="section">
+				<div class="row">
+					<form class="col s12">
+						<div class="row">
+							<div class="input-field col s12">
+								<label for="txt_delay">Volume</label><br/>
+								<p class="range-field"><input type="range" id="rng_volume" min="0" max="30" value="15" class="update_volume" /></p>
+							</div>
+						</div>
+					</form>
+				</div>
+				
+				<div class="row">
+					<div class="col s3 m3 l3 xl3 btn_grid">
+						<a class="btn waves-effect waves-light btn_mode_static blue" name="action" data-mode="pause">
+							<i class="material-icons">pause</i>
+						</a>
+					</div>
+					
+					<div class="col s3 m3 l3 xl3 btn_grid">
+						<a class="btn waves-effect waves-light btn_mode_static blue" name="action" data-mode="start">
+							<i class="material-icons">play_arrow</i>
+						</a>
+					</div>
+					
+					<div class="col s3 m3 l3 xl3 btn_grid">
+						<a class="btn waves-effect waves-light btn_mode_static blue" name="action" data-mode="random">
+							<i class="material-icons">sync</i>
+						</a>
+					</div>
+
+					<div class="col s3 m3 l3 xl3 btn_grid">
+						<a class="btn waves-effect waves-light btn_mode_static blue" name="action" data-mode="stop">
+							<i class="material-icons">stop</i>
+						</a>
+					</div>
+					
+					<div class="col s3 m3 l3 xl3 btn_grid">
+						<a class="btn waves-effect waves-light btn_mode_static blue" name="action" data-mode="next">
+							<i class="material-icons">skip_next</i>
+						</a>
+					</div>
+					
+					<div class="col s3 m3 l3 xl3 btn_grid">
+						<a class="btn waves-effect waves-light btn_mode_static blue" name="action" data-mode="previous">
+							<i class="material-icons">skip_previous</i>
+						</a>
+					</div>
+
+					<div class="col s3 m3 l3 xl3 btn_grid">
+						<a class="btn waves-effect waves-light btn_mode_static blue" name="action" data-mode="speaker:1">
+							<i class="material-icons">volume_up</i>
+						</a>
+					</div>
+
+					<div class="col s3 m3 l3 xl3 btn_grid">
+						<a class="btn waves-effect waves-light btn_mode_static blue" name="action" data-mode="speaker:0">
+							<i class="material-icons">volume_off</i>
+						</a>
+					</div>
+
+					<div id="folders">
+						<div class="input-field col s12">
+							Loading folders...
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<footer class="page-footer blue">
+			<div class="footer-copyright">
+				<div class="container">© 2018 R J Tidey
+				<a class="grey-text text-lighten-4 right" href="https://github.com/roberttidey">Project home</a>
+				</div>
+			</div>
+		</footer>
+		
+		<style type="text/css">
+			.btn_grid {
+				margin: 7px 0;
+			}
+		</style>
+	
+		<!--Import jQuery before materialize.js-->
+		<script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+		<script src="http://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
+		<script type="text/javascript">(function($){
+$(function(){
+	  
+	// Settings
+	var host = window.location.hostname;
+
+	// ******************************************************************
+	// init()
+	// ******************************************************************
+	function init() {
+		
+		// Load folders async
+		$.get("http://" + host + "/Folders.txt", function(data) {
+			var lines = data.split("\n");
+			var folders_html = "";
+			$.each(lines, function(n, urlRecord) {
+				if(urlRecord.length > 0) {
+					folders_html += '<div class="col s12 m6 l6 btn_grid">'; 
+					folders_html += '<a class="btn  btn_mode green" name="action" data-mode="' + urlRecord.substr(0,2) + '">' + urlRecord.substr(3,30); 
+					//folders_html += '<i class="material-icons right">send</i>';
+					folders_html += '</a>';
+					folders_html += '</div>';
+				}
+			});
+			
+			$('#folders').html(folders_html);
+		});
+	}			
+	
+	// ******************************************************************
+	// Modes
+	// ******************************************************************	
+	$("#pane2").on("click", ".btn_mode", function() {
+		var folder = $(this).attr("data-mode");
+		var btn = $(this);
+		playFolder(folder, function() {
+			$(".btn_mode").removeClass("red").addClass("green");
+			btn.removeClass("green").addClass("red");
+		});
+	});	
+	
+	$("#pane2").on("click", ".btn_mode_static", function() {
+		var action = $(this).attr("data-mode");
+		var btn = $(this);
+		doAction(action, function() {
+			$(".btn_mode_static").removeClass("red").addClass("blue");
+			btn.removeClass("blue").addClass("red");
+		});
+		
+	});
+	
+	$("#pane2").on("change", ".update_volume", function() {
+		var volume = $("#rng_volume").val();		
+		$.get("http://" + host + "/dfPlayer", {cmd:"volume", p1:volume} );
+	});
+
+	function playFolder(folder, finish_function) {
+		console.log("Folder: ", folder);
+		$.get("http://" + host + "/dfPlayer", {cmd:"loopFolder", p1:folder} );
+		finish_function();
+	}
+	
+	function doAction(action, finish_function) {
+		action += ":0:0:0"
+		var actionlist = action.split(":");
+		console.log("Action: ", action);
+		$.get("http://" + host + "/dfPlayer", {cmd:actionlist[0],p1:actionlist[1],p2:actionlist[2],p3:actionlist[3]});
+		finish_function();
+	}
+
+	// ******************************************************************
+	// main
+	// ******************************************************************
+	init();
+	
+}); // end of document ready
+})(jQuery); // end of jQuery name space</script>
+	</body>
+</html>
