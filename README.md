@@ -1,8 +1,8 @@
-#dfPlayer application for ESP8266
+# dfPlayer application for ESP8266
 
 See schematic for hook up.
 
-##Features
+## Features
 - 4 local buttons for standalone use
 - mobile browser interface
 - Volume
@@ -17,7 +17,7 @@ See schematic for hook up.
 - battery monitoring
 
 ## Basic Web interface (basic.htm)
-###Commands are sent to ip/dfPlayer/cmd with arguments p1,p2,p3
+### Commands are sent to ip/dfPlayer/cmd with arguments p1,p2,p3
 - ?cmd=play&p1=folder&p2=track
 - ?cmd=playmp3&p1=track
 - ?cmd=volume&p1=level (0-30)
@@ -40,7 +40,7 @@ See schematic for hook up.
 - ?cmd=raw&p1=cmdcode&p2=par1&p3=par2
 - ?cmd=init
 
-##Mobile browser interface (/)
+## Mobile browser interface (/)
 - Works using folderMap (see tools)
 - Volume slider
 - Play controls
@@ -76,8 +76,9 @@ See schematic for hook up.
 - ArduinoJson
 - ESP8266mDNS
 - ESP8266HTTPUpdateServer
-- OneWire.h
-- DallasTemperature.h
+- SoftwareSerial.h
+- DFRobotDFPlayerMini.h
+- ESP8266WiFi.h
 
 ### Install procedure
 - Normal arduino esp8266 compile and upload
