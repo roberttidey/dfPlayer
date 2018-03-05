@@ -109,12 +109,3 @@ To avoid doing tedious renaming and also to support the mobile web interface a v
 The dfPlayer does not naturally support mute. Volume can be set to 0 but this also mutes the headphone output.
 
 To get separate speaker mute control a small hardware mod is needed. Replace the 0 Ohm resistor with 10K and solder a mute control onto the pad as shown in the picture in docs. This mute control goes to GPIO16
-
-Create a text file with a list of button names (broken into subsets for convenience). These files are named device-subset. When 
-run it will prompt for device,subset,coding type (nec,rc5,rc6) and whether to check(y/n). The user is then asked to press the buttons. 
-
-The codes are then appended to a file called device.ircodes. If check is y then it will try to verify code looks sensible and will retry if required.
-
-Note that the program assumes the GPIO is low when IR is off. I use a simple 1 transistor buffer between the sensor to convert to 3.3V 
-which inverts the signal from the sensor (active low). If no inversion is used then modify the defintions at line 26-27
-
