@@ -1,5 +1,5 @@
 /***************************************************
-dfPlayer - A Mini MP3 Player For ESP8266
+dfPlayer - A Mini MP3 Player for ESP8266
 R.J.Tidey March 2018
 ****************************************************/
 
@@ -12,6 +12,9 @@ R.J.Tidey March 2018
 #include "FS.h"
 #include <DNSServer.h>
 #include <WiFiManager.h>
+
+//put -1 s at end
+int unusedPins[11] = {0,2,4,5,12,14,16,-1,-1,-1,-1};
 
 /*
 Wifi Manager Web set up
@@ -43,6 +46,7 @@ const char* update_password = "password";
 #define AP_MAX_WAIT 10
 String macAddr;
 
+#define AP_AUTHID "14153143"
 #define AP_PORT 80
 
 ESP8266WebServer server(AP_PORT);
@@ -52,7 +56,14 @@ File fsUploadFile;
 
 SoftwareSerial mySoftwareSerial(5, 15); // RX, TX
 DFRobotDFPlayerMini myDFPlayer;
-int dfPlayerInit = 0;
+#define INIT_SKIP -1
+#define INIT_START 0
+#define INIT_DELAY 1
+#define INIT_OK1 2
+#define INIT_OK2 3
+#define INIT_RUN 4
+
+int dfPlayerInit = INIT_START;
 int dfPlayerType;
 int dfPlayerParameter;
 
@@ -105,6 +116,20 @@ void ICACHE_RAM_ATTR  delayuSec(unsigned long uSec) {
 	delayMicroseconds(us);
 	ESP.wdtFeed();
 	yield();
+}
+
+void unusedIO() {
+	int i;
+	
+	for(i=0;i<11;i++) {
+		if(unusedPins[i] < 0) {
+			break;
+		} else if(unusedPins[i] != 16) {
+			pinMode(unusedPins[i],INPUT_PULLUP);
+		} else {
+			pinMode(16,INPUT_PULLDOWN_16);
+		}
+	}
 }
 
 /*
@@ -168,7 +193,10 @@ int wifiConnect(int check) {
 }
 
 void initFS() {
-	SPIFFS.begin();
+	if(dfPlayerInit == INIT_SKIP) {
+		//force a format
+		SPIFFS.format();
+	}
 	if(!SPIFFS.begin()) {
 		Serial.println(F("No SIFFS found. Format it"));
 		if(SPIFFS.format()) {
@@ -324,23 +352,17 @@ void handleSpiffsFormat() {
 	server.send(200, "text/json", "format complete");
 }
 
-
 void init_dfPlayer() {
 	Serial.println();
-	if(digitalRead(pinInputs[0]) == 1) {
-		Serial.println(F("Initializing DFPlayer ... (May take 3~5 seconds)"));
+	Serial.println(F("Initializing DFPlayer ... (May take 3~5 seconds)"));
 
-		//Use softwareSerial to communicate with mp3.	
-		if (myDFPlayer.begin(mySoftwareSerial)) {
-			dfPlayerInit = 2;
-			Serial.println(F("DFPlayer Mini online."));
-		} else {
-			dfPlayerInit = 3;
-			Serial.println(F("Failed to init player"));
-		}
+	//Use softwareSerial to communicate with mp3.	
+	if (myDFPlayer.begin(mySoftwareSerial)) {
+		dfPlayerInit = INIT_OK1;
+		Serial.println(F("DFPlayer Mini online."));
 	} else {
-		Serial.println(F("Skip init dfPlayer"));
-		dfPlayerInit = -1;
+		dfPlayerInit = INIT_OK2;
+		Serial.println(F("Failed to init player"));
 	}
 }
 
@@ -394,6 +416,12 @@ void dfPlayerCmd() {
 	int p3 = server.arg("p3").toInt();
 	server.send(200, "text/html", F("dfPlayer cmd being processed"));
 	Serial.print(cmd);Serial.printf(" p1=%d p2=%d\r\n",p1,p2);
+	
+	if(dfPlayerInit != INIT_RUN  && dfPlayerInit >= INIT_OK1) {
+		myDFPlayer.volume(volume);
+		dfPlayerInit = INIT_RUN;
+		delaymSec(500);
+	}
 
 	if(cmd.equalsIgnoreCase("play")) {
 		getFolder(server.arg("p1"));
@@ -453,29 +481,27 @@ void dfPlayerStatus() {
 	String response;
 	int i;
 	
-	response  = "Player Init: " + String(dfPlayerInit);
-	response += "<BR>Type: " + String(dfPlayerType) + " Par: " + String(dfPlayerParameter);
-	response += "<BR>Buttons ";
+	response  = "Init:" + String(dfPlayerInit);
 	for(i=0;i<4;i++) {
-		response += " " + String(i) + "-" + String(pinStates[i]);
+		response += "<BR>Button" + String(i) + ":" + String(pinStates[i]);
 	}
-	response += "<BR>Battery = " + String(battery_volts);
-	response += "<BR>Volume = " + String(volume);
-	response += "<BR>Mute = " + String(muteState);
-	response += "<BR>Folder = " + String(folderSelect) + ":" + folderMap[folderSelect];
+	response += "<BR>Battery:" + String(battery_volts);
+	response += "<BR>Volume:" + String(volume);
+	response += "<BR>Mute:" + String(muteState);
+	response += "<BR>Folder:" + String(folderSelect) + "," + folderMap[folderSelect] + "<BR>";
 	server.send(200, "text/html", response);
 }
 
 void dfPlayerTest() {
 	String response = "Test";
 	
-	response += "<BR>Available: " + String(myDFPlayer.available());
-	response += "<BR>_handleType: " + String(myDFPlayer._handleType);
-	response += "<BR>_handleCommand: " + String(myDFPlayer._handleCommand);
-	response += "<BR>_handleParameter: " + String(myDFPlayer._handleParameter);
-	response += "<BR>_isAvailable: " + String(myDFPlayer._isAvailable);
-	response += "<BR>_isSending: " + String(myDFPlayer._isSending);
-	//response += "<BR>State: " + String(myDFPlayer.readState());
+	response += "<BR>Available:" + String(myDFPlayer.available());
+	response += "<BR>_handleType:" + String(myDFPlayer._handleType);
+	response += "<BR>_handleCommand:" + String(myDFPlayer._handleCommand);
+	response += "<BR>_handleParameter:" + String(myDFPlayer._handleParameter);
+	response += "<BR>_isAvailable:" + String(myDFPlayer._isAvailable);
+	response += "<BR>_isSending:" + String(myDFPlayer._isSending);
+	//response += "<BR>State:" + String(myDFPlayer.readState()) + "<BR>";
 	server.send(200, "text/html", response);
 }
 
@@ -580,6 +606,7 @@ void saveConfig() {
 
 void setup()
 {
+	unusedIO();
 	int i;
 	for(i=0; i<4;i++) {
 		pinMode(pinInputs[i], INPUT_PULLUP);
@@ -590,6 +617,10 @@ void setup()
 	Serial.println(F("Set up Web update service"));
 	digitalWrite(MUTE, 1);
 	pinMode(MUTE, OUTPUT);
+	if(digitalRead(pinInputs[0]) == 0 && digitalRead(pinInputs[1]) == 0) {
+		dfPlayerInit = INIT_SKIP;
+		Serial.println(F("Skip init dfPlayer and format SPIFFS"));
+	}
 	mySoftwareSerial.begin(9600);
 	wifiConnect(0);
 	macAddr = WiFi.macAddress();
@@ -638,16 +669,13 @@ void loop() {
 	wifiConnect(1);
 	delaymSec(timeInterval);
 	elapsedTime++;
-	if(dfPlayerInit == 0 && elapsedTime * timeInterval > DFPLAYER_STARTUP) {
+	if(dfPlayerInit == INIT_START && elapsedTime * timeInterval > DFPLAYER_STARTUP) {
 		Serial.println(F("Delayed init of dfPlayer"));
-		dfPlayerInit = 1;
+		dfPlayerInit = INIT_DELAY;
 		init_dfPlayer();
-		delaymSec(500);
-		digitalWrite(MUTE, muteState);
-		delaymSec(2000);
-		if(dfPlayerInit > 1) myDFPlayer.volume(volume);
+		digitalWrite(MUTE, 0);
 	}
-	if(dfPlayerInit > 1 && checkButtons()) {
+	if(dfPlayerInit >= INIT_OK1 && checkButtons()) {
 		processButtons();
 	}
 	checkBattery();

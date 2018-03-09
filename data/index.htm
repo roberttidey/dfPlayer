@@ -24,9 +24,10 @@
 				<div class="row">
 					<form class="col s12">
 						<div class="row">
-							<div class="input-field col s12">
-								<label for="txt_delay">Volume</label><br/>
-								<p class="range-field"><input type="range" id="rng_volume" min="0" max="30" value="15" class="update_volume" /></p>
+							<div class="input-field col s11 m11 l11 xl1">
+								<p class="range-field"><input type="range" id="rng_volume" min="0" max="30" value="15" class="update_volume" />
+									<i class="material-icons">volume_up</i>
+								</p>
 							</div>
 						</div>
 					</form>
@@ -177,10 +178,41 @@ $(function(){
 		finish_function();
 	}
 
+	function getCurrentStatus() {
+		$.get("http://" + host + "/dfPlayerStatus", {},
+			function(str) {
+				var lines = str.split('<BR>');
+				var dict = [];
+				var k,v;
+				$.each(lines, function(n, record) {
+					if(record.length > 0) {
+						record += ':';
+						k = record.split(':')[0];
+						v = record.split(':')[1];
+						dict[k] = v;
+					}
+				});
+				if("Battery" in dict) {
+					var battery = parseFloat(dict["Battery"]);
+					//$("#status-time").text(statusTime.format("ddd D MMM HH:mm"));
+				}
+				if("Volume" in dict) {
+					$("#rng_volume").val(parseInt(dict["Volume"]));
+				}
+			}
+		);
+	}
+	
+	function refresh(updateRate) {
+	   setInterval(function(){ getCurrentStatus(); }, updateRate);
+	}
+
 	// ******************************************************************
 	// main
 	// ******************************************************************
 	init();
+	refresh(2000);
+
 	
 }); // end of document ready
 })(jQuery); // end of jQuery name space</script>
