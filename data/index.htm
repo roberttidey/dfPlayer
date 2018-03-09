@@ -15,7 +15,10 @@
 	<body>
 		<nav class="blue light-blueXXX lighten-1XXX" role="navigation" id="mc-nav">
 			<div class="nav-wrapper container">
-				<a id="logo-container" href="#" class="brand-logo">Mini dfPlayer</a>
+				<span id="battery">10</span>
+				<a id="logo-container" href="#" class="brand-logo">Mini dfPlayer
+					<i class="medium material-icons">battery_std</i>
+				</a>
 			</div>
 		</nav>
 		
@@ -24,8 +27,8 @@
 				<div class="row">
 					<form class="col s12">
 						<div class="row">
-							<div class="input-field col s11 m11 l11 xl1">
-								<p class="range-field"><input type="range" id="rng_volume" min="0" max="30" value="15" class="update_volume" />
+							<div class="input-field col s12 m12 l12 xl12">
+								<p class="range-field"><input type="range" id="rng_volume" min="0" max="30" value="15" class="update_volume col s10 m10 l10 xl10">
 									<i class="material-icons">volume_up</i>
 								</p>
 							</div>
@@ -194,7 +197,10 @@ $(function(){
 				});
 				if("Battery" in dict) {
 					var battery = parseFloat(dict["Battery"]);
-					//$("#status-time").text(statusTime.format("ddd D MMM HH:mm"));
+					battery = Math.round(100 * (battery - 3.4)/0.8);
+					if(battery>100) battery = 100;
+					if(battery<0) battery = 0;
+					$("#battery").text(battery.toString() + "% ");
 				}
 				if("Volume" in dict) {
 					$("#rng_volume").val(parseInt(dict["Volume"]));
