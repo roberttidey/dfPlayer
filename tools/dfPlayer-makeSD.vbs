@@ -126,7 +126,7 @@ Sub ProcessFolder(sFolder)
 		fName = Split(iLine, vbCOLON)(1)
 		fFile.Close
 		Set fFile = fso.OpenTextFile(MainFolder.Path & "\" & FOLDERS_FILE, forAppending, True)
-		fFile.WriteLine CInt(sFolder.Name) & vbCOLON & fName
+		fFile.WriteLine sFolder.Name & vbCOLON & fName
 		fFile.Close
 	Else
 		WriteLog "Processing " & sFolder.Name
