@@ -25,6 +25,8 @@ Const forAppending	= 8
 	Dim sFolders
 	Dim nextFree
 	Dim skipped
+	Dim eFile
+	Dim existingFolders
 	Dim ScriptPath
 	Dim ScriptTime
 	Dim Logging
@@ -41,11 +43,15 @@ Const forAppending	= 8
 	WriteLog "Start SD Process"
 	nextFree = "00"
 	skipped = False
+	existingFolders = ""
 	If fso.FileExists(MainFolder.Path & "\" & FOLDERS_FILE & ".bak") Then
 		WriteLog "Delete old backup " & MainFolder.Path & "\" & FOLDERS_FILE & ".bak"
 		fso.DeleteFile MainFolder.Path & "\" & FOLDERS_FILE & ".bak"
 	End If
 	If fso.FileExists(MainFolder.Path & "\" & FOLDERS_FILE) Then
+		Set eFile = fso.OpenTextFile(MainFolder.Path & "\" & FOLDERS_FILE, forReading)
+		existingFolders = eFile.ReadAll()
+		eFile.Close
 		WriteLog "Backup " & MainFolder.Path & "\" & FOLDERS_FILE
 		fso.MoveFile MainFolder.Path & "\" & FOLDERS_FILE, MainFolder.Path & "\" & FOLDERS_FILE & ".bak"
 	End If
@@ -93,7 +99,7 @@ Sub UpdateFolders()
 		If Len(iLIne) > 0 Then
 			fNewName = Split(iLine,vbCOLON)(0)
 			fName = Split(iLine, vbCOLON)(1)
-			If fso.FolderExists(MainFolder.Path & "\" & fName) Then
+			If fso.FolderExists(MainFolder.Path & "\" & fName) And Not fso.FolderExists(MainFolder.Path & "\" & fNewName) Then
 				Index = Index + 1
 				WriteLog "Rename Folder " & fName & " to " & fNewName
 				fso.MoveFolder MainFolder.Path & "\" & fName, MainFolder.Path & "\" & fNewName
@@ -112,8 +118,10 @@ End Sub
 '**********************************************************************
 Sub ProcessFolder(sFolder)
 	Dim f
+	Dim fs
 	Dim fFile
 	Dim fNumber
+	Dim fNames
 	Dim fName
 	Dim Index
 	Dim iLine
@@ -129,20 +137,34 @@ Sub ProcessFolder(sFolder)
 		fFile.WriteLine sFolder.Name & vbCOLON & fName
 		fFile.Close
 	Else
-		WriteLog "Processing " & sFolder.Name
 		Index = 0
-		For Each f in sFolder.Files
-			If lCase(Right(f.Name,4)) = MP3_EXT Then
-				If Index = 0 Then
-					Index = 1
-					Set fFile = fso.CreateTextFile(sFolder.Path & "\" & TRACKS_FILE, True)
-					fFile.WriteLine("Title" & vbCOLON & sFolder.Name)
-				Else
-					Index = Index + 1
-				End If
-				fFile.WriteLine(Right("00" & Index, 3) & vbCOLON & f.Name)
+		WriteLog "Processing " & sFolder.Name
+		If Instr(existingFolders, sFolder.Name) > 0 Then
+			WriteLog "Folder already exists; skipping this one"
+		Else
+			If fso.FolderExists(sFolder.Path & "\" & TRACKS_FILE) Then
+				WriteLog "Tracks file already exists; using that"
+				Index = 99
+			Else
+				Set fNames = CreateObject("System.Collections.ArrayList")
+				For Each f in sFolder.Files
+					fNames.Add f.Name
+				Next
+				fNames.Sort()
+				For Each fName in fNames
+					If lCase(Right(fName,4)) = MP3_EXT Then
+						If Index = 0 Then
+							Index = 1
+							Set fFile = fso.CreateTextFile(sFolder.Path & "\" & TRACKS_FILE, True)
+							fFile.WriteLine("Title" & vbCOLON & sFolder.Name)
+						Else
+							Index = Index + 1
+						End If
+						fFile.WriteLine(Right("00" & Index, 3) & vbCOLON & fName)
+					End If
+				Next
 			End If
-		Next
+		End If
 		If Index > 0 Then
 			fFile.Close
 			WriteLog Index & " MP3 files found "
@@ -167,6 +189,9 @@ Sub ProcessFolder(sFolder)
 				Loop
 				WriteLog "Renamed " & Index & " files"
 				fFile.Close
+				If fso.FileExists(MainFolder.Path & "\" & nextFree & "-" & TRACKS_FILE) Then
+					fso.DeleteFile MainFolder.Path & "\" & nextFree & "-" & TRACKS_FILE
+				End If
 				fso.CopyFile sFolder.Path & "\" & TRACKS_FILE, MainFolder.Path & "\" & nextFree & "-" & TRACKS_FILE
 			Else
 				WriteLog "Folder skipped - No free slots"
