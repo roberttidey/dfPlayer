@@ -83,10 +83,10 @@ Instructable at https://www.instructables.com/id/ESP8266-DfPlayer-Audio-Player/
 
 ### Install procedure
 - Normal arduino esp8266 compile and upload
-- A simple built in file uploader (/upload) should then be used to upload the 4 base files to SPIFF
+- A simple built in file uploader (/upload) should then be used to upload the base files to SPIFF
   edit.htm.gz
-  index.html
-  favicon.ico
+  index.html (can be changed to refer to different favicon)
+  favicon*.png
   graphs.js.gz
 - The /edit operation is then supported to upload basic.htm and SD naming files
 	
