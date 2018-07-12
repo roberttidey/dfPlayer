@@ -2,6 +2,7 @@
 dfPlayer - A Mini MP3 Player for ESP8266
 R.J.Tidey March 2018
 ****************************************************/
+#define ESP8266
 
 #include "SoftwareSerial.h"
 #include "DFRobotDFPlayerMini.h"
