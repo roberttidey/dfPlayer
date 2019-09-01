@@ -471,8 +471,9 @@ void dfPlayerCmd() {
 		myDFPlayer.sleep();
 	} else if(cmd.equalsIgnoreCase("reset")) {
 		myDFPlayer.reset();
-	} else if(cmd.equalsIgnoreCase("raw")) {
-		myDFPlayer.sendStack(p1,p2,p3);
+	// needs sendStack public in library
+	//} else if(cmd.equalsIgnoreCase("raw")) {
+	//	myDFPlayer.sendStack(p1,p2,p3);
 	} else if(cmd.equalsIgnoreCase("init")) {
 		init_dfPlayer();
 	}
@@ -544,7 +545,7 @@ void processButtons() {
 		digitalWrite(MUTE, 1);
 		muteState = 1;
 		saveConfig();
-		pinChanges[VOLUP] = 0;
+		pinChanges[VOLDOWN] = 0;
 	} else if (pinChanges[VOLDOWN] == 1) {
 		dfPlayerSetVolume(volume-1);
 		pinChanges[VOLDOWN] = 0;
