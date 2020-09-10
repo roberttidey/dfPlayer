@@ -54,20 +54,15 @@ Instructable at https://www.instructables.com/id/ESP8266-DfPlayer-Audio-Player/
 - /firmware for OTA
 
 ### Config
-- Edit dfPlayer.ino
-	- Manual Wifi set up (Comment out WM_NAME)
-		- AP_SSID Local network ssid
-		- AP_PASSWORD 
-		- AP_IP If static IP to be used
+- Edit BaseConfig.h
 	- Wifi Manager set up
 		- WM_NAME (ssid of wifi manager network)
 		- WM_PASSWORD (password to connect)
 		- On start up connect to WM_NAME network and browse to 192.168.4.1 to set up wifi
-	- AP_PORT to access web services
-	- update_username user for updating firmware
 	- update_password
 	
 ### Libraries
+- BaseSupport General access routines https://github.com/roberttidey/BaseSupport
 - BitMessages Routines to look up and create pulse sequences for a commands
 - BitTx Bit bang routines to execute a pulse sequence
 	- Interrupt driven and supports accurate modulation
